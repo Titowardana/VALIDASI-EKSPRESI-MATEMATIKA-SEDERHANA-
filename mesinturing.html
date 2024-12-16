@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Mesin Turing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #74ebd5, #9face6);
+    }
+    .container {
+      text-align: center;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 400px;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #4A4E69;
+    }
+    input {
+      width: calc(100% - 20px);
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #4A4E69;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background: #4A4E69;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #22223B;
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #4A4E69;
+    }
+    .state {
+      margin-top: 15px;
+      font-size: 16px;
+      color: gray;
+      white-space: pre-line;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Simulasi Mesin Turing</h1>
+    <p>Masukkan ekspresi matematika untuk divalidasi:</p>
+    <input type="text" id="expression" placeholder="Masukkan ekspresi...">
+    <button onclick="simulateTuringMachine()">Validasi</button>
+    <div class="output" id="output"></div>
+    <div class="state" id="state"></div>
+  </div>
+
+  <script>
+    function simulateTuringMachine() {
+      const expression = document.getElementById('expression').value;
+      const output = document.getElementById('output');
+      const stateOutput = document.getElementById('state');
+      
+      let states = ["q0"]; // Awal state
+      let validSymbols = /^[01+*()]+$/; // Validasi simbol
+      let balance = 0; // Untuk mengecek keseimbangan tanda kurung
+
+      // Reset output
+      stateOutput.textContent = "";
+      output.textContent = "";
+
+      // Validasi simbol
+      if (!validSymbols.test(expression)) {
+        states.push("q_reject");
+        animateStates(states, "Ekspresi mengandung simbol tidak valid!", "red");
+        return;
+      }
+
+      // Validasi operator dan tanda kurung
+      for (let i = 0; i < expression.length; i++) {
+        let char = expression[i];
+        
+        if (char === '(') {
+          balance++;
+        } else if (char === ')') {
+          balance--;
+          if (balance < 0) {
+            states.push("q_reject");
+            animateStates(states, "Tanda kurung tidak seimbang!", "red");
+            return;
+          }
+        } else if (/[+*]/.test(char)) {
+          if (i === 0 || /[+*]/.test(expression[i - 1])) {
+            states.push("q_reject");
+            animateStates(states, "Operator tidak valid!", "red");
+            return;
+          }
+        }
+        states.push("q0");
+      }
+
+      // Validasi keseimbangan tanda kurung
+      if (balance !== 0) {
+        states.push("q_reject");
+        animateStates(states, "Tanda kurung tidak seimbang!", "red");
+        return;
+      }
+
+      // Jika semua validasi lolos
+      states.push("q_accept");
+      animateStates(states, "Ekspresi valid!", "green");
+    }
+
+    // Fungsi untuk menampilkan animasi state bertahap
+    function animateStates(states, message, color) {
+      const stateOutput = document.getElementById('state');
+      const output = document.getElementById('output');
+
+      stateOutput.textContent = ""; // Reset state display
+      let index = 0;
+
+      function displayState() {
+        if (index < states.length) {
+          stateOutput.textContent += (index === 0 ? "" : " → ") + states[index];
+          index++;
+          setTimeout(displayState, 500); // Waktu jeda antar state
+        } else {
+          // Setelah animasi selesai, tampilkan pesan akhir
+          output.textContent = message;
+          output.style.color = color;
+        }
+      }
+
+      displayState(); // Mulai animasi
+    }
+  </script>
+</body>
+</html>
